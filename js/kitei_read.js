@@ -2,7 +2,7 @@
 // 🔴本文はこの公開ページに置かない。スマホで1回だけ取り込んだファイル（kind: mjdrill-kitei）を localStorage に持つ
 var KiteiRead = (function () {
   var KEY = 'mjdrill_kitei_text';
-  var data = null, q = '', openChap = {}, jumpTo = null;
+  var data = null, q = '', openChap = {}, jumpTo = null, lastError = '';
   try { data = JSON.parse(localStorage.getItem(KEY)); } catch (e) { data = null; }
 
   // カードの「第◯条」から、条ごとの穴埋めの答え（色を付ける言葉）と出題歴を集める
@@ -44,11 +44,11 @@ var KiteiRead = (function () {
     return '<div class="card"><p><b>競技規定の全文を取り込みます</b></p>' +
       '<p class="small">全文はこの公開ページには置いていません。クロコが作った「競技規定_アプリ取り込み用.json」を1回だけ選ぶと、このスマホの中に保存され、電波がなくても読めます。</p>' +
       (msg ? '<p class="note">' + UI.esc(msg) + '</p>' : '') +
-      '<label class="file-btn">ファイルを選ぶ<input id="kiteiFile" type="file" accept=".json,application/json"></label></div>';
+      '<label class="file-btn">ファイルを選ぶ<input id="kiteiFile" type="file"></label></div>';
   }
 
   function render(root, headHtml) {
-    if (!has()) { root.innerHTML = headHtml + importBox(); return; }
+    if (!has()) { root.innerHTML = headHtml + importBox(lastError ? '読めませんでした。この文をスクショでクロコへ：' + lastError : ''); return; }
     var arts = data.articles;
     var ql = q.trim();
     var h = headHtml + '<div class="search-row"><input id="kiteiQ" type="search" placeholder="規定の中を探す（例：リーチ、符）" value="' + UI.esc(q) + '" enterkeyhint="search"></div>';
@@ -108,17 +108,27 @@ var KiteiRead = (function () {
     if (!f) return;
     var r = new FileReader();
     r.onload = function () {
+      var text = String(r.result || '').replace(/^﻿/, '');
+      var step = '読み取り';
       try {
-        var d = JSON.parse(r.result);
-        if (d.kind !== 'mjdrill-kitei' || !d.articles || !d.articles.length) throw new Error('形がちがう');
+        step = '中身の解読';
+        var d = JSON.parse(text);
+        step = '形の確認';
+        if (d.kind !== 'mjdrill-kitei' || !d.articles || !d.articles.length) throw new Error('取り込み用のファイルではない');
+        step = 'スマホへの保存';
         localStorage.setItem(KEY, JSON.stringify(d));
-        data = d;
+        data = d; lastError = '';
         UI.toast('取り込みました（' + d.articles.length + '条）');
         Kitei.render();
       } catch (err) {
-        UI.toast('このファイルは読めませんでした');
+        // 原因が分かるように、どこで止まったかと受け取った中身の様子を画面に出す
+        lastError = step + 'で失敗：' + (err && err.message ? err.message : err) +
+          '／ファイル名 ' + f.name + '・' + f.size + 'バイト・種類 ' + (f.type || '不明') +
+          '・受け取った文字数 ' + text.length + '・先頭「' + text.slice(0, 30) + '」';
+        Kitei.render();
       }
     };
+    r.onerror = function () { lastError = '読み取りで失敗：' + (r.error && r.error.name) + '／' + f.name + '・' + f.size + 'バイト'; Kitei.render(); };
     r.readAsText(f, 'utf-8');
   });
   document.addEventListener('input', function (e) {
