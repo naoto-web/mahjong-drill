@@ -97,6 +97,25 @@ input.num:focus { outline: 2px solid var(--accent); border-color: var(--accent);
 .flash .fq { font-size: 18px; line-height: 1.7; min-height: 4em; }
 .flash .fa { font-size: 20px; font-weight: 700; color: var(--accent); margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
 
+.to-rule { display: block; margin-top: 10px; border: 0; background: none; color: var(--accent); font-size: 14px; padding: 4px 0; text-decoration: underline; }
+
+/* 規定を読む */
+.search-row input { width: 100%; font: inherit; padding: 9px 12px; border: 1px solid #c9ced4; border-radius: 10px; margin: 6px 0; }
+.file-btn { display: block; text-align: center; background: var(--accent); color: #fff; border-radius: 10px; padding: 11px 0; font-weight: 600; margin-top: 10px; }
+.file-btn input { display: none; }
+.chap { margin: 8px 0; }
+.chap-h { width: 100%; text-align: left; border: 1px solid var(--line); background: var(--soft); border-radius: 10px; padding: 10px 12px; font-weight: 700; font-size: 15px; display: flex; align-items: center; }
+.chap-h small { margin-left: auto; font-weight: 400; color: var(--sub); font-size: 12px; }
+.art { border-bottom: 1px solid var(--line); padding: 10px 4px; scroll-margin-top: 60px; }
+.art-h { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.art-cards { margin-left: auto; border: 1px solid var(--accent); color: var(--accent); background: #fff; border-radius: 999px; padding: 1px 10px; font-size: 12px; font-weight: 600; }
+.art-p { margin: 3px 0; font-size: 15px; line-height: 1.75; }
+em.ans { font-style: normal; background: #fff3c4; border-bottom: 2px solid #e8a33a; }
+mark { background: #cfe8ff; }
+.asked-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--ng); vertical-align: middle; margin: 0 2px; }
+.flash-hl { animation: hl 2s ease-out; }
+@keyframes hl { from { background: #e8f5ef; } to { background: transparent; } }
+
 /* ホーム */
 .countdown { text-align: center; font-size: 15px; color: var(--sub); margin: 6px 0 10px; }
 .countdown b { font-size: 28px; color: var(--text); margin: 0 4px; }
