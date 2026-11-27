@@ -36,9 +36,13 @@ var Tensu = (function () {
     if (x.wait && x.cat !== 'chiitoi') h += '<p class="small">待ちは「' + x.wait + '」で取ると一番高い（高点法）。</p>';
     return h;
   }
+  // 牌の絵：手の中 → 鳴いた面子（第31条の並べ方）→ 少し離してアガリ牌
   function handHtml(x) {
-    return '<div class="hand">' + UI.esc(x.hand) + (x.melds ? ' <span class="melds">' + UI.esc(x.melds) + '</span>' : '') + '</div>' +
-      '<div class="win">' + UI.esc(x.win) + '</div>';
+    if (!x.tiles) return '<div class="hand">' + UI.esc(x.hand) + ' ' + UI.esc(x.melds) + '</div><div class="win">' + UI.esc(x.win) + '</div>';
+    var t = x.tiles;
+    return '<div class="hand-tiles"><span class="closed">' + Tiles.row(t.closed) + '</span>' +
+      t.melds.map(Tiles.meld).join('') +
+      '<span class="agari"><small>' + (x.tsumo ? 'ツモ' : 'ロン') + '</small>' + Tiles.one(t.win, { cls: 'win-tile' }) + '</span></div>';
   }
 
   function seg() {

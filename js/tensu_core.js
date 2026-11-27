@@ -190,6 +190,7 @@ var TensuCore = (function () {
       return {
         cat: 'chiitoi', seat: seat, tsumo: tsumo, han: han, fu: 25, pay: p,
         hand: tilesText(closed), melds: '', win: (tsumo ? 'ツモ' : 'ロン') + oneText(win),
+        tiles: { closed: closed.slice().sort(function (a, b) { return a - b; }), melds: [], win: win },
         items: [['七対子は符を数えない', 25]], raw: 25, wait: '単騎',
         note: '七対子は25符の固定（ツモ・ロンとも）。切り上げもしない。' + (tsumo ? 'ツモは門前清自摸和がつくので3翻から。' : '')
       };
@@ -256,6 +257,11 @@ var TensuCore = (function () {
       return {
         cat: cat, seat: seat, tsumo: tsumo, han: han, fu: b.fu, pay: p,
         hand: tilesText(closed), melds: melds.map(meldText).join(' '), win: (tsumo ? 'ツモ' : 'ロン') + oneText(win),
+        // 絵で出す用（from＝鳴いた相手：0上家 1対面 2下家。チーは上家だけ）
+        tiles: {
+          closed: closed.slice().sort(function (a, b) { return a - b; }), win: win,
+          melds: melds.map(function (g) { return { k: g.k, t: g.t, open: g.open, from: g.k === 'shun' ? 0 : Math.floor(R() * 3) }; })
+        },
         items: b.items, raw: b.raw, wait: b.wait, note: b.note
       };
     }

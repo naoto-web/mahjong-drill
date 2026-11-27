@@ -48,7 +48,7 @@ var Print = (function () {
     for (var i = 0; i < n; i++) {
       var x = T.make(UI.seed() + i * 7919);
       if (!x) continue;
-      q += '<li><div>' + Tensu.seatLine(x) + '　<b>' + x.han + '翻</b></div><div class="p-hand">' + UI.esc(x.hand) + ' ' + UI.esc(x.melds) + '　' + UI.esc(x.win) + '</div><div class="p-fill">符：＿＿＿＿　点数：＿＿＿＿＿＿＿＿</div></li>';
+      q += '<li><div>' + Tensu.seatLine(x) + '　<b>' + x.han + '翻</b></div><div class="p-hand">' + Tensu.handHtml(x) + '</div><div class="p-fill">符：＿＿＿＿　点数：＿＿＿＿＿＿＿＿</div></li>';
       a += '<li><b>' + x.fu + '符　' + T.payText(x.pay) + '</b><span class="p-hint">' +
         x.items.map(function (it) { return it[0].replace(/（.*?）/g, '') + ' ' + it[1]; }).join('＋') + (x.cat === 'chiitoi' ? '' : '＝' + x.raw + '→' + x.fu + '符') + (x.note ? '／' + x.note : '') + '</span></li>';
     }
