@@ -88,12 +88,16 @@ input.num:focus { outline: 2px solid var(--accent); border-color: var(--accent);
 /* 牌の絵（tiles.js） */
 .hand-tiles { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 6px 8px; margin: 6px 0 10px; }
 .hand-tiles .closed, .hand-tiles .meld { display: inline-flex; align-items: flex-end; }
-.tile { width: 25px; height: 33px; display: block; filter: drop-shadow(0 1.5px 0 #c9b48a); }
-.tile.side { width: 33px; height: 25px; }
+.tile { --tw: 25px; --th: 33px; position: relative; display: inline-block; width: var(--tw); height: var(--th); flex: none; }
+.tile .tf { position: absolute; left: 50%; top: 50%; width: var(--tw); height: var(--th); transform: translate(-50%, -50%);
+  background: #f5f0eb; border: 1px solid #c4b89c; border-radius: 3px; box-shadow: 0 2px 0 #b9a47a; overflow: hidden; box-sizing: border-box; }
+.tile .tf img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tile.side { width: var(--th); height: var(--tw); }
+.tile.side .tf { transform: translate(-50%, -50%) rotate(90deg); }
 .hand-tiles .agari { display: inline-flex; flex-direction: column; align-items: center; margin-left: 4px; }
 .hand-tiles .agari small { font-size: 11px; font-weight: 700; color: var(--ng); line-height: 1.2; }
-.tile.win-tile { outline: 2px solid var(--ng); outline-offset: 1px; border-radius: 4px; }
-@media (min-width: 480px) { .tile { width: 30px; height: 40px; } .tile.side { width: 40px; height: 30px; } }
+.tile.win-tile { outline: 2px solid var(--ng); outline-offset: 1px; border-radius: 3px; }
+@media (min-width: 480px) { .tile { --tw: 30px; --th: 40px; } }
 .han { font-size: 15px; margin-bottom: 10px; }
 .han .small { margin-left: 6px; }
 .qa-row { display: flex; align-items: center; gap: 6px; margin: 8px 0; flex-wrap: wrap; }
@@ -167,8 +171,7 @@ h3 { font-size: 15px; margin: 20px 0 6px; }
   .p-tensu { padding-left: 24px; }
   .p-tensu li { margin-bottom: 9px; page-break-inside: avoid; }
   .p-hand .hand-tiles { margin: 3px 0; }
-  .p-hand .tile { width: 22px; height: 29px; filter: none; }
-  .p-hand .tile.side { width: 29px; height: 22px; }
+  .p-hand .tile { --tw: 22px; --th: 29px; }
   .p-fill { font-size: 10pt; margin-top: 2px; }
   .p-kitei { padding-left: 28px; font-size: 10pt; }
   .p-kitei li { margin-bottom: 5px; page-break-inside: avoid; }
