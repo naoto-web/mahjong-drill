@@ -1,14 +1,35 @@
-// store.js — 成績をスマホ内に保存（localStorage）
+// store.js — 成績をスマホ内に保存
 // 形：{ days: { '2026-11-27': { jouken:[解いた数,正解数], ... } }, kitei: { カードID: { ok, ng, last } }, weak: { 部門: { 種類: [数, 正解] } } }
+// 🪤 localStorage は naoto-web.github.io の自作アプリ全部で約5MBを分け合う＝他のアプリでいっぱいだと書けない（11/27 規定の取り込みで発覚）
+//    ⇒ 正本は IndexedDB（mjdrill/kv の 'stats'）。起動直後は localStorage の写しで画面を出し、IndexedDB を読んだら差し替える
 var Store = (function () {
   var KEY = 'mjdrill_v1';
   var data;
   try { data = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { data = {}; }
-  data.days = data.days || {};
-  data.kitei = data.kitei || {};
-  data.weak = data.weak || {};
+  norm();
 
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} }
+  function norm() { data.days = data.days || {}; data.kitei = data.kitei || {}; data.weak = data.weak || {}; }
+  function db() {
+    return new Promise(function (ok, ng) {
+      var rq = indexedDB.open('mjdrill', 1);
+      rq.onupgradeneeded = function () { rq.result.createObjectStore('kv'); };
+      rq.onsuccess = function () { ok(rq.result); };
+      rq.onerror = function () { ng(rq.error); };
+    });
+  }
+  db().then(function (d) {
+    var rq = d.transaction('kv').objectStore('kv').get('stats');
+    rq.onsuccess = function () {
+      if (rq.result) { data = rq.result; norm(); }
+      else save(); // 初回：localStorage にあった記録を IndexedDB へ移す
+      if (window.Home && !document.getElementById('view-home').hidden) Home.render();
+    };
+  }).catch(function () {});
+
+  function save() {
+    db().then(function (d) { d.transaction('kv', 'readwrite').objectStore('kv').put(JSON.parse(JSON.stringify(data)), 'stats'); }).catch(function () {});
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
+  }
   function today() {
     var d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');

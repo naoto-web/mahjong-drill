@@ -3,7 +3,40 @@
 var KiteiRead = (function () {
   var KEY = 'mjdrill_kitei_text';
   var data = null, q = '', openChap = {}, jumpTo = null, lastError = '';
-  try { data = JSON.parse(localStorage.getItem(KEY)); } catch (e) { data = null; }
+  // 🪤 localStorage は naoto-web.github.io の自作アプリ全部で約5MBを分け合う＝他のアプリでいっぱいになり取り込めなかった（11/27）
+  //    ⇒ 本文は容量の大きい IndexedDB に置く
+  var DB = {
+    open: function () {
+      return new Promise(function (ok, ng) {
+        var rq = indexedDB.open('mjdrill', 1);
+        rq.onupgradeneeded = function () { rq.result.createObjectStore('kv'); };
+        rq.onsuccess = function () { ok(rq.result); };
+        rq.onerror = function () { ng(rq.error); };
+      });
+    },
+    get: function (k) {
+      return DB.open().then(function (db) {
+        return new Promise(function (ok, ng) {
+          var rq = db.transaction('kv').objectStore('kv').get(k);
+          rq.onsuccess = function () { ok(rq.result); };
+          rq.onerror = function () { ng(rq.error); };
+        });
+      });
+    },
+    set: function (k, v) {
+      return DB.open().then(function (db) {
+        return new Promise(function (ok, ng) {
+          var tx = db.transaction('kv', 'readwrite');
+          tx.objectStore('kv').put(v, k);
+          tx.oncomplete = function () { ok(); };
+          tx.onerror = function () { ng(tx.error); };
+        });
+      });
+    }
+  };
+  DB.get(KEY).then(function (d) {
+    if (d && d.articles) { data = d; if (document.getElementById('kiteiBody') && !document.getElementById('view-kitei').hidden) Kitei.render(); }
+  }).catch(function () {});
 
   // カードの「第◯条」から、条ごとの穴埋めの答え（色を付ける言葉）と出題歴を集める
   var byArt = {};
@@ -116,10 +149,14 @@ var KiteiRead = (function () {
         step = '形の確認';
         if (d.kind !== 'mjdrill-kitei' || !d.articles || !d.articles.length) throw new Error('取り込み用のファイルではない');
         step = 'スマホへの保存';
-        localStorage.setItem(KEY, JSON.stringify(d));
-        data = d; lastError = '';
-        UI.toast('取り込みました（' + d.articles.length + '条）');
-        Kitei.render();
+        DB.set(KEY, d).then(function () {
+          data = d; lastError = '';
+          UI.toast('取り込みました（' + d.articles.length + '条）');
+          Kitei.render();
+        }).catch(function (err) {
+          lastError = 'スマホへの保存で失敗：' + (err && (err.name + ' ' + err.message));
+          Kitei.render();
+        });
       } catch (err) {
         // 原因が分かるように、どこで止まったかと受け取った中身の様子を画面に出す
         lastError = step + 'で失敗：' + (err && err.message ? err.message : err) +
