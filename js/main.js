@@ -1,6 +1,7 @@
 // main.js — タブ切り替え・インストールボタン・ホーム画面アプリ化
 var Main = (function () {
-  var TITLES = { home: '麻雀ドリル', jouken: '🧮 条件計算', tensu: '🀄 点数計算', kitei: '📜 競技規定・用語' };
+  // 条件計算タブは11/27に削除（紙で解いて写真をクロコへ＝印刷はホームから）
+  var TITLES = { home: '麻雀ドリル', tensu: '🀄 点数計算', kitei: '📜 競技規定・用語' };
   var tab = 'home';
   function show(name) {
     tab = name;
@@ -9,7 +10,6 @@ var Main = (function () {
     document.getElementById('pageTitle').textContent = TITLES[name];
     window.scrollTo(0, 0);
     if (name === 'home') Home.render();
-    if (name === 'jouken') Jouken.render();
     if (name === 'tensu') Tensu.render();
     if (name === 'kitei') Kitei.render();
   }

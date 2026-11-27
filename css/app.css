@@ -129,6 +129,9 @@ h3 { font-size: 15px; margin: 20px 0 6px; }
 .weak-list { margin: 0; padding-left: 20px; font-size: 14px; color: var(--ng); }
 .print-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .print-btns button { border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 10px 6px; font-size: 14px; }
+.print-btns.main { margin-bottom: 8px; }
+.print-btns.main button { border-color: var(--accent); padding: 12px 6px; font-weight: 700; display: flex; flex-direction: column; align-items: center; }
+.print-btns.main button small { font-weight: 400; font-size: 11px; color: var(--sub); margin-top: 2px; }
 .foot { margin-top: 24px; font-size: 12px; color: var(--sub); text-align: center; }
 .link { border: 0; background: none; color: var(--ng); text-decoration: underline; font-size: 12px; }
 
