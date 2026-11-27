@@ -44,13 +44,13 @@ var Print = (function () {
 
   function tensu(n) {
     n = n || 10;
-    var q = '<p class="p-lead">東場。翻数は問題の数字で計算する（役・ドラこみ）。符と点数を答える。</p><ol class="p-tensu">', a = '<ol class="p-tensu">';
+    var q = '<p class="p-lead">東場。リーチ・ドラなし。翻・符・点数を答える（満貫以上は符を問わない）。</p><ol class="p-tensu">', a = '<ol class="p-tensu">';
     for (var i = 0; i < n; i++) {
       var x = T.make(UI.seed() + i * 7919);
       if (!x) continue;
-      q += '<li><div>' + Tensu.seatLine(x) + '　<b>' + x.han + '翻</b></div><div class="p-hand">' + Tensu.handHtml(x) + '</div><div class="p-fill">符：＿＿＿＿　点数：＿＿＿＿＿＿＿＿</div></li>';
-      a += '<li><b>' + x.fu + '符　' + T.payText(x.pay) + '</b><span class="p-hint">' +
-        x.items.map(function (it) { return it[0].replace(/（.*?）/g, '') + ' ' + it[1]; }).join('＋') + (x.cat === 'chiitoi' ? '' : '＝' + x.raw + '→' + x.fu + '符') + (x.note ? '／' + x.note : '') + '</span></li>';
+      q += '<li><div>' + Tensu.seatLine(x) + '（リーチ・ドラなし）</div><div class="p-hand">' + Tensu.handHtml(x) + '</div><div class="p-fill">翻：＿＿＿　符：＿＿＿＿　点数：＿＿＿＿＿＿＿＿</div></li>';
+      a += '<li><b>' + (x.han >= 13 ? '役満' : x.han + '翻') + '　' + x.fu + '符　' + T.payText(x.pay) + '</b><span class="p-hint">役：' + x.yaku.map(function (y) { return y[0] + (y[1] >= 13 ? '' : y[1]); }).join('・') + '</span><span class="p-hint">' +
+        x.items.map(function (it) { return it[0].replace(/（.*?）/g, '') + ' ' + it[1]; }).join('＋') + (x.chiitoi ? '' : '＝' + x.raw + '→' + x.fu + '符') + (x.note ? '／' + x.note : '') + '</span></li>';
     }
     go('符と点数（' + n + '題）', q + '</ol>', a + '</ol>');
   }

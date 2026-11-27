@@ -2,7 +2,7 @@
 var Tensu = (function () {
   var T = TensuCore;
   var cur = 'hand', cat = '', q = null, done = false;
-  var CHIPS = [['', 'おまかせ'], ['kan', '槓'], ['nakitsumo', '鳴きツモ'], ['chiitoi', '七対子'], ['oya', '親'], ['high', '70符以上']];
+  var CHIPS = [['', 'おまかせ'], ['yaku', '役づくり'], ['kan', '槓'], ['nakitsumo', '鳴きツモ'], ['chiitoi', '七対子'], ['oya', '親'], ['high', '70符以上']];
 
   function seatLine(x) { return '東場・' + T.SEATS[x.seat]; }
   // 点数の入力欄（ロン／子のツモ＝子/親／親のツモ＝オール）
@@ -27,13 +27,20 @@ var Tensu = (function () {
     else h += '<p>子のツモ＝子は基本点 ' + UI.fmt(p.basic) + '→<b>' + UI.fmt(p.ko) + '</b>、親は×2 ' + UI.fmt(p.basic * 2) + '→<b>' + UI.fmt(p.oya) + '</b>（么二の法則）</p>';
     return h;
   }
+  // 役の一覧（第54〜58条）
+  function yakuExplain(x) {
+    if (!x.yaku) return '';
+    var h = '<table class="fu-table yaku-table">';
+    x.yaku.forEach(function (y) { h += '<tr><td>' + UI.esc(y[0]) + '</td><td class="r">' + (y[1] >= 13 ? '役満' : y[1] + '翻') + '</td></tr>'; });
+    return h + '<tr class="sum"><td>合計</td><td class="r">' + (x.han >= 13 ? (x.han >= 26 ? Math.floor(x.han / 13) + '倍役満' : '役満') : x.han + '翻') + '</td></tr></table>';
+  }
   function fuExplain(x) {
     var h = '<table class="fu-table">';
     x.items.forEach(function (it) { h += '<tr><td>' + UI.esc(it[0]) + '</td><td class="r">' + it[1] + '</td></tr>'; });
     h += '<tr class="sum"><td>合計（連底）</td><td class="r">' + x.raw + '</td></tr></table>';
-    if (x.cat !== 'chiitoi') h += '<p>' + (x.raw === x.fu ? x.raw + '符' : x.raw + ' → 1の位を切り上げて <b>' + x.fu + '符</b>') + '</p>';
+    if (!x.chiitoi) h += '<p>' + (x.raw === x.fu ? x.raw + '符' : x.raw + ' → 1の位を切り上げて <b>' + x.fu + '符</b>') + '</p>';
     if (x.note) h += '<p class="hint">' + UI.esc(x.note) + '</p>';
-    if (x.wait && x.cat !== 'chiitoi') h += '<p class="small">待ちは「' + x.wait + '」で取ると一番高い（高点法）。</p>';
+    if (x.wait && !x.chiitoi) h += '<p class="small">待ちは「' + x.wait + '」で取ると一番高い（高点法）。</p>';
     return h;
   }
   // 牌の絵：手の中 → 鳴いた面子（第31条の並べ方）→ 少し離してアガリ牌
@@ -54,8 +61,8 @@ var Tensu = (function () {
     if (cur === 'table') { renderTable(root); return; }
     if (!q) q = T.make(UI.seed(), cat || undefined);
     var h = seg() + '<div class="chips">' + CHIPS.map(function (c) { return '<button data-c="' + c[0] + '"' + (c[0] === cat ? ' class="on"' : '') + '>' + c[1] + '</button>'; }).join('') + '</div>';
-    h += '<div class="card"><div class="meta">' + seatLine(q) + '</div>' + handHtml(q) +
-      '<div class="han">翻数：<b>' + q.han + '翻</b><span class="small">（役・ドラこみ。役は考えなくてよい）</span></div>';
+    h += '<div class="card"><div class="meta">' + seatLine(q) + '<span class="small">（リーチ・ドラなし）</span></div>' + handHtml(q);
+    h += '<div class="qa-row"><label>翻</label>' + UI.input('th', { ph: '翻' }) + '<span class="unit">翻</span></div>';
     h += '<div class="qa-row"><label>符</label>' + UI.input('tf', { ph: '符' }) + '<span class="unit">符</span></div>';
     h += '<div class="qa-row"><label>点数</label>' + payInputs(q, 'tp') + '</div>';
     h += '<div id="tRes" class="res" hidden></div><div class="btns"><button id="tCheck" class="primary">答え合わせ</button><button id="tNext">次の問題</button></div></div>';
@@ -64,13 +71,17 @@ var Tensu = (function () {
   function check() {
     if (done) return;
     done = true;
-    var okF = UI.same(UI.num(document.getElementById('tf').value), q.fu);
+    var big = q.han >= 5; // 満貫以上は符を問わない（点数は翻だけで決まる）
+    var okH = UI.same(UI.num(document.getElementById('th').value), q.han);
+    var okF = big || UI.same(UI.num(document.getElementById('tf').value), q.fu);
     var okP = payOk(q.pay, 'tp');
-    Store.record('tensu', okF && okP, q.cat);
+    Store.record('tensu', okH && okF && okP, q.cat);
     var r = document.getElementById('tRes');
     r.hidden = false;
-    r.innerHTML = '<div class="verdict">' + (okF ? '○' : '×') + ' 符：<b>' + q.fu + '符</b>　' + (okP ? '○' : '×') + ' 点数：<b>' + T.payText(q.pay) + '</b><span class="tag">' + T.CAT_NAME[q.cat] + '</span></div>' +
-      '<div class="exp">' + fuExplain(q) + payExplain(q.fu, q.han, q.seat === 0, q.tsumo, q.pay) + '</div>';
+    r.innerHTML = '<div class="verdict">' + (okH ? '○' : '×') + ' 翻：<b>' + q.han + '翻</b>　' +
+      (big ? '－ 符：<b>' + q.fu + '符</b><span class="small">（満貫以上は問わない）</span>　' : (okF ? '○' : '×') + ' 符：<b>' + q.fu + '符</b>　') +
+      (okP ? '○' : '×') + ' 点数：<b>' + T.payText(q.pay) + '</b><span class="tag">' + T.CAT_NAME[q.cat] + '</span></div>' +
+      '<div class="exp">' + yakuExplain(q) + fuExplain(q) + payExplain(q.fu, q.han, q.seat === 0, q.tsumo, q.pay) + '</div>';
     document.getElementById('tCheck').disabled = true;
   }
 
@@ -114,5 +125,5 @@ var Tensu = (function () {
     if (cur === 'table') { if (done) { tq = null; render(); } else checkTable(); }
   });
 
-  return { render: render, handHtml: handHtml, fuExplain: fuExplain, payExplain: payExplain, seatLine: seatLine, tableLabel: tableLabel };
+  return { render: render, yakuExplain: yakuExplain, handHtml: handHtml, fuExplain: fuExplain, payExplain: payExplain, seatLine: seatLine, tableLabel: tableLabel };
 })();
